@@ -1,0 +1,74 @@
+Steps to completing the tasks:
+
+1. Install AWS CLI and SAM CLI:
+Install the AWS CLI (Command Line Interface) on your local machine.
+Install the SAM CLI (Serverless Application Model Command Line Interface) on your local machine.
+
+2. Create a New SAM Project:
+Use the SAM CLI to create a new SAM project by running a command:
+sam init --runtime nodejs14.x --name writespace
+
+3. Write Lambda Functions:
+Define your Lambda functions in the appropriate files within the SAM project directory.
+(CreateBlogFunction to handle blog creation and storage.
+GetDraftFunction to retrieve a draft from DynamoDB.
+PublishBlogFunction to publish a blog and update the database.)
+Implement the logic for each Lambda function based on the requirements of the WriteSpace platform. Use the AWS SDKs and libraries to interact with the necessary AWS services (e.g., Cognito, S3, DynamoDB, API Gateway).
+
+4. Define AWS SAM Template:
+Create an AWS SAM template (usually a template.yaml or template.yml file) in the root of your SAM project.
+Define the AWS resources (e.g., Lambda functions, API Gateway, DynamoDB tables) and their configurations in the SAM template.
+Specify the event triggers and permissions for each Lambda function.
+(Resources:
+  WriteSpaceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: writeSpaceFunction/
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /writespace
+            Method: post
+
+  WriteSpaceApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title: "WriteSpace API"
+        paths:
+          /writespace:
+            post:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WriteSpaceFunction.Arn}/invocations"
+                httpMethod: POST
+                type: aws_proxy
+
+  WriteSpaceTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: writespace_table
+      PrimaryKey:
+        Name: blogId
+        Type: String
+)
+
+5. Local Testing and Debugging:
+Use the SAM CLI to locally test and debug your application.
+Run commands like sam local invoke or sam local start-api to simulate the Lambda function invocations and API Gateway requests on your local machine.
+
+6. Deploy the Application:
+Run the SAM CLI command to deploy your application to AWS.
+(sam deploy --guided)
+Follow the prompts to provide necessary deployment configurations, such as AWS region, stack name, and other options.
+The SAM CLI will package and deploy your application, creating the required AWS resources.
+
+7. Testing and Monitoring:
+Perform thorough testing of the deployed application to ensure its functionality and performance.
+Utilize AWS monitoring and logging services (e.g., CloudWatch) to monitor the application's performance, track logs, and handle any issues or errors.
